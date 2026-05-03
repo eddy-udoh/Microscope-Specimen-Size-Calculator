@@ -1,0 +1,335 @@
+<!doctype html>
+<html class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microscope Specimen Size Calculator</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Outfit', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass { background: rgba(255,255,255,0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+    .glow { box-shadow: 0 0 40px rgba(56, 189, 248, 0.08); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+    .tab-active { background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.5); color: #38bdf8; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-slate-950 text-slate-200 overflow-auto">
+  <div id="app" class="w-full h-full min-h-full p-4 md:p-8"><!-- Header -->
+   <header class="max-w-4xl mx-auto mb-8 text-center">
+    <div class="flex items-center justify-center gap-3 mb-2">
+     <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center"><i data-lucide="microscope" class="w-5 h-5 text-sky-400"></i>
+     </div>
+     <h1 id="app-title" class="text-2xl md:text-3xl font-bold text-white">Microscope Specimen Size Calculator</h1>
+    </div>
+    <p id="app-subtitle" class="text-slate-400 text-sm">CSC 442 — Computational Biology</p>
+   </header><!-- Tabs -->
+   <div class="max-w-4xl mx-auto mb-6 flex gap-2"><button onclick="switchTab('calc')" id="tab-calc" class="tab-active px-4 py-2 rounded-lg border border-transparent text-sm font-medium transition-all"> <i data-lucide="calculator" class="w-4 h-4 inline mr-1"></i>Calculator </button> <button onclick="switchTab('history')" id="tab-history" class="px-4 py-2 rounded-lg border border-transparent text-sm font-medium text-slate-400 hover:text-slate-200 transition-all"> <i data-lucide="database" class="w-4 h-4 inline mr-1"></i>History </button>
+   </div><!-- Calculator Tab -->
+   <div id="panel-calc" class="max-w-4xl mx-auto fade-in">
+    <div class="glass rounded-2xl p-6 md:p-8 glow"><!-- Username -->
+     <div class="mb-6"><label for="username" class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Username</label> <input type="text" id="username" placeholder="Enter your name" class="w-full bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition">
+     </div>
+     <div class="grid md:grid-cols-2 gap-6"><!-- Left column -->
+      <div class="space-y-5"><!-- Image Upload Section -->
+       <div><label class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Specimen Image (optional)</label>
+        <div id="upload-area" class="border-2 border-dashed border-slate-700 rounded-lg p-4 text-center cursor-pointer hover:border-sky-500/50 transition" onclick="document.getElementById('file-input').click()"><i data-lucide="upload" class="w-6 h-6 mx-auto text-slate-500 mb-1"></i>
+         <p id="upload-text" class="text-sm text-slate-500">Click to upload image</p><img id="preview-img" class="hidden max-h-32 mx-auto rounded mt-2">
+        </div><input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleImage(event)">
+       </div><!-- Measured Size -->
+       <div><label for="measured-size" class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Measured Size (mm)</label> <input type="number" id="measured-size" step="any" min="0" placeholder="e.g. 50" class="w-full bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition">
+       </div><!-- Microscope Type Selection -->
+       <div><label for="microscope-type" class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Microscope Type</label> <select id="microscope-type" class="w-full bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-sky-500 transition"> <option value="">Select microscope...</option> <option value="light_low">Light Microscope — Low Power (×40)</option> <option value="light_medium">Light Microscope — Medium Power (×100)</option> <option value="light_high">Light Microscope — High Power (×400)</option> <option value="light_oil">Light Microscope — Oil Immersion (×1000)</option> <option value="stereo">Stereo/Dissecting Microscope (×20)</option> <option value="sem">Scanning Electron Microscope (×50,000)</option> <option value="tem">Transmission Electron Microscope (×500,000)</option> </select>
+       </div><!-- Output Unit -->
+       <div><label for="output-unit" class="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Output Unit</label> <select id="output-unit" class="w-full bg-slate-800/60 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-sky-500 transition"> <option value="nm">Nanometres (nm)</option> <option value="µm" selected>Micrometres (µm)</option> <option value="mm">Millimetres (mm)</option> <option value="cm">Centimetres (cm)</option> <option value="m">Metres (m)</option> </select>
+       </div><button onclick="calculate()" id="calc-btn" class="w-full bg-sky-500 hover:bg-sky-400 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2"> <i data-lucide="zap" class="w-4 h-4"></i> Calculate Real Size </button>
+      </div><!-- Right column:Show Result -->
+      <div id="result-panel" class="flex items-center justify-center">
+       <div id="result-placeholder" class="text-center text-slate-500"><i data-lucide="scan" class="w-12 h-12 mx-auto mb-3 opacity-40"></i>
+        <p class="text-sm">Enter values and calculate to see the result</p>
+       </div>
+       <div id="result-content" class="hidden w-full space-y-4 fade-in">
+        <div class="bg-slate-800/50 rounded-xl p-5 border border-sky-500/20">
+         <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Real Specimen Size</p>
+         <p id="result-value" class="text-3xl font-bold text-sky-400 mono"></p>
+        </div>
+        <div class="bg-slate-800/30 rounded-xl p-4 space-y-2 text-sm">
+         <p class="text-xs text-slate-400 uppercase tracking-wider mb-2">Calculation Breakdown</p>
+         <p id="breakdown-formula" class="text-slate-300 mono text-xs"></p>
+         <p id="breakdown-values" class="text-slate-300 mono text-xs"></p>
+         <p id="breakdown-result" class="text-sky-400 mono text-xs font-bold"></p>
+        </div>
+       </div>
+      </div>
+     </div><!-- Error -->
+     <div id="error-msg" class="hidden mt-4 bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-lg px-4 py-3"></div>
+    </div>
+   </div><!-- History Tab -->
+   <div id="panel-history" class="max-w-4xl mx-auto hidden fade-in">
+    <div class="glass rounded-2xl p-6 md:p-8 glow">
+     <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-semibold text-white">Calculation History</h2><span id="record-count" class="text-xs text-slate-500 mono">0 records</span>
+     </div>
+     <div id="history-empty" class="text-center py-12 text-slate-500"><i data-lucide="inbox" class="w-10 h-10 mx-auto mb-2 opacity-40"></i>
+      <p class="text-sm">No calculations saved yet</p>
+     </div>
+     <div id="history-list" class="hidden space-y-3 max-h-96 overflow-y-auto pr-1"></div>
+    </div>
+   </div><!-- Limit Warning -->
+   <div id="limit-warning" class="hidden max-w-4xl mx-auto mt-4 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm rounded-lg px-4 py-3 text-center">
+    Maximum record limit (999) reached. Please delete some records to save new calculations.
+   </div>
+  </div>
+  <script>
+// Magnification factors for different microscope types
+const MICROSCOPES = {
+  light_low: { name: 'Light Microscope — Low Power', mag: 40 },
+  light_medium: { name: 'Light Microscope — Medium Power', mag: 100 },
+  light_high: { name: 'Light Microscope — High Power', mag: 400 },
+  light_oil: { name: 'Light Microscope — Oil Immersion', mag: 1000 },
+  stereo: { name: 'Stereo/Dissecting Microscope', mag: 20 },
+  sem: { name: 'Scanning Electron Microscope', mag: 50000 },
+  tem: { name: 'Transmission Electron Microscope', mag: 500000 }
+};
+
+const UNIT_CONVERSIONS = {
+  nm: { factor: 1e6, label: 'nm' },
+  'µm': { factor: 1e3, label: 'µm' },
+  mm: { factor: 1, label: 'mm' },
+  cm: { factor: 0.1, label: 'cm' },
+  m: { factor: 0.001, label: 'm' }
+};
+
+let allRecords = [];
+let currentRecordCount = 0;
+
+// Tabs switching 
+function switchTab(tab) {
+  document.getElementById('panel-calc').classList.toggle('hidden', tab !== 'calc');
+  document.getElementById('panel-history').classList.toggle('hidden', tab !== 'history');
+  document.getElementById('tab-calc').classList.toggle('tab-active', tab === 'calc');
+  document.getElementById('tab-history').classList.toggle('tab-active', tab === 'history');
+  document.getElementById('tab-calc').classList.toggle('text-slate-400', tab !== 'calc');
+  document.getElementById('tab-history').classList.toggle('text-slate-400', tab !== 'history');
+}
+
+// Image handling (only preview, not saved to database)
+function handleImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const img = document.getElementById('preview-img');
+    img.src = ev.target.result;
+    img.classList.remove('hidden');
+    document.getElementById('upload-text').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Show error message
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+// Calculate real size
+async function calculate() {
+  const username = document.getElementById('username').value.trim();
+  const measuredStr = document.getElementById('measured-size').value;
+  const microscopeKey = document.getElementById('microscope-type').value;
+  const unitKey = document.getElementById('output-unit').value;
+
+  if (!username) return showError('Please enter your username.');
+  if (!measuredStr || isNaN(measuredStr) || Number(measuredStr) <= 0) return showError('Please enter a valid measured size.');
+  if (!microscopeKey) return showError('Please select a microscope type.');
+
+  const measured = Number(measuredStr);
+  const microscope = MICROSCOPES[microscopeKey];
+  const mag = microscope.mag;
+  const realMm = measured / mag;
+  const unit = UNIT_CONVERSIONS[unitKey];
+  const converted = realMm * unit.factor;
+
+  // Show calculation result
+  document.getElementById('result-placeholder').classList.add('hidden');
+  const rc = document.getElementById('result-content');
+  rc.classList.remove('hidden');
+  document.getElementById('result-value').textContent = `${converted.toFixed(4)} ${unit.label}`;
+  document.getElementById('breakdown-formula').textContent = `Real Size = Measured Size ÷ Magnification`;
+  document.getElementById('breakdown-values').textContent = `Real Size = ${measured} mm ÷ ${mag.toLocaleString()} = ${realMm.toFixed(6)} mm`;
+  document.getElementById('breakdown-result').textContent = `Converted: ${realMm.toFixed(6)} mm × ${unit.factor} = ${converted.toFixed(4)} ${unit.label}`;
+
+  // Save results to database
+  if (currentRecordCount >= 999) {
+    document.getElementById('limit-warning').classList.remove('hidden');
+    return;
+  }
+
+  const btn = document.getElementById('calc-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Saving...';
+  lucide.createIcons();
+
+  const result = await window.dataSdk.create({
+    username: username,
+    specimen_measured_mm: measured,
+    microscope_type: microscope.name,
+    magnification: mag,
+    real_size_mm: realMm,
+    output_unit: unit.label,
+    real_size_converted: converted,
+    timestamp: new Date().toISOString()
+  });
+
+  btn.disabled = false;
+  btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> Calculate Real Size';
+  lucide.createIcons();
+
+  if (!result.isOk) showError('Failed to save calculation. Please try again.');
+}
+
+// Render history of calculations
+function renderHistory(data) {
+  allRecords = data;
+  currentRecordCount = data.length;
+  document.getElementById('record-count').textContent = `${data.length} record${data.length !== 1 ? 's' : ''}`;
+
+  if (data.length === 0) {
+    document.getElementById('history-empty').classList.remove('hidden');
+    document.getElementById('history-list').classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('history-empty').classList.add('hidden');
+  const list = document.getElementById('history-list');
+  list.classList.remove('hidden');
+
+  const sorted = [...data].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  const existingMap = new Map([...list.children].map(el => [el.dataset.id, el]));
+  const newIds = new Set(sorted.map(r => r.__backendId));
+
+  // Remove deleted account/identity records
+  existingMap.forEach((el, id) => { if (!newIds.has(id)) el.remove(); });
+
+  sorted.forEach((record, i) => {
+    const id = record.__backendId;
+    let el = list.querySelector(`[data-id="${id}"]`);
+    if (!el) {
+      el = document.createElement('div');
+      el.dataset.id = id;
+      el.className = 'bg-slate-800/40 border border-slate-700/50 rounded-lg p-4 flex items-center justify-between gap-4';
+      list.appendChild(el);
+    }
+    const date = new Date(record.timestamp);
+    el.innerHTML = `
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-medium text-sky-400">${record.username}</span>
+          <span class="text-xs text-slate-600">•</span>
+          <span class="text-xs text-slate-500">${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <p class="text-sm text-slate-300 truncate">${record.specimen_measured_mm} mm → <span class="text-sky-300 font-medium">${record.real_size_converted.toFixed(4)} ${record.output_unit}</span></p>
+        <p class="text-xs text-slate-500 truncate">${record.microscope_type} (×${record.magnification.toLocaleString()})</p>
+      </div>
+      <button onclick="deleteRecord('${id}')" class="shrink-0 p-2 text-slate-500 hover:text-red-400 transition" title="Delete">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    `;
+  });
+  lucide.createIcons();
+
+  if (currentRecordCount < 999) document.getElementById('limit-warning').classList.add('hidden');
+}
+
+async function deleteRecord(id) {
+  const record = allRecords.find(r => r.__backendId === id);
+  if (!record) return;
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) el.style.opacity = '0.5';
+  const result = await window.dataSdk.delete(record);
+  if (!result.isOk) {
+    if (el) el.style.opacity = '1';
+    showError('Failed to delete record.');
+  }
+}
+
+// Data SDK init render callback
+const dataHandler = { onDataChanged(data) { renderHistory(data); } };
+
+// Element SDK init with configuration mapping
+const defaultConfig = {
+  app_title: 'Microscope Specimen Size Calculator',
+  subtitle_text: 'CSC 442 — Computational Biology',
+  background_color: '#020617',
+  surface_color: '#1e293b',
+  text_color: '#e2e8f0',
+  primary_action: '#38bdf8',
+  secondary_action: '#64748b'
+};
+
+window.elementSdk.init({
+  defaultConfig,
+  onConfigChange: async (config) => {
+    const title = config.app_title || defaultConfig.app_title;
+    const subtitle = config.subtitle_text || defaultConfig.subtitle_text;
+    const bg = config.background_color || defaultConfig.background_color;
+    const surface = config.surface_color || defaultConfig.surface_color;
+    const text = config.text_color || defaultConfig.text_color;
+    const primary = config.primary_action || defaultConfig.primary_action;
+    const secondary = config.secondary_action || defaultConfig.secondary_action;
+    const font = config.font_family || 'Outfit';
+    const size = config.font_size || 16;
+
+    document.getElementById('app-title').textContent = title;
+    document.getElementById('app-subtitle').textContent = subtitle;
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = text;
+    document.body.style.fontFamily = `${font}, Outfit, sans-serif`;
+    document.body.style.fontSize = `${size}px`;
+
+    document.getElementById('app-title').style.fontSize = `${size * 2}px`;
+    document.getElementById('app-subtitle').style.fontSize = `${size * 0.85}px`;
+
+    document.getElementById('calc-btn').style.backgroundColor = primary;
+
+    document.querySelectorAll('.glass').forEach(el => {
+      el.style.borderColor = `${surface}44`;
+    });
+  },
+  mapToCapabilities: (config) => ({
+    recolorables: [
+      { get: () => config.background_color || defaultConfig.background_color, set: (v) => { config.background_color = v; window.elementSdk.setConfig({ background_color: v }); } },
+      { get: () => config.surface_color || defaultConfig.surface_color, set: (v) => { config.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); } },
+      { get: () => config.text_color || defaultConfig.text_color, set: (v) => { config.text_color = v; window.elementSdk.setConfig({ text_color: v }); } },
+      { get: () => config.primary_action || defaultConfig.primary_action, set: (v) => { config.primary_action = v; window.elementSdk.setConfig({ primary_action: v }); } },
+      { get: () => config.secondary_action || defaultConfig.secondary_action, set: (v) => { config.secondary_action = v; window.elementSdk.setConfig({ secondary_action: v }); } }
+    ],
+    borderables: [],
+    fontEditable: { get: () => config.font_family || 'Outfit', set: (v) => { config.font_family = v; window.elementSdk.setConfig({ font_family: v }); } },
+    fontSizeable: { get: () => config.font_size || 16, set: (v) => { config.font_size = v; window.elementSdk.setConfig({ font_size: v }); } }
+  }),
+  mapToEditPanelValues: (config) => new Map([
+    ['app_title', config.app_title || defaultConfig.app_title],
+    ['subtitle_text', config.subtitle_text || defaultConfig.subtitle_text]
+  ])
+});
+
+// Init Data SDK and set up data change handler
+(async () => {
+  const result = await window.dataSdk.init(dataHandler);
+  if (!result.isOk) console.error('Data SDK init failed');
+})();
+
+lucide.createIcons();
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f62833617d648ac',t:'MTc3Nzg0NTM1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

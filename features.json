@@ -1,0 +1,36 @@
+{
+  "persistence_enabled": true,
+  "app_name": "Microscope Specimen Size Calculator",
+  "avoids_browser_dialogs": true,
+  "avoids_viewport_units": true,
+  "verified_data_sdk_usage": true,
+  "verified_editable_features_usage": true,
+  "data_paradigm": "B",
+  "schema": {
+    "username": "string",
+    "specimen_measured_mm": "number",
+    "microscope_type": "string",
+    "magnification": "number",
+    "real_size_mm": "number",
+    "output_unit": "string",
+    "real_size_converted": "number",
+    "timestamp": "string"
+  },
+  "edit_panel": {
+    "header_label": {
+      "type": "label",
+      "text": "App Settings",
+      "size": "large"
+    },
+    "app_title": {
+      "type": "text_input",
+      "label": "Application Title",
+      "placeholder": "Microscope Specimen Size Calculator"
+    },
+    "subtitle_text": {
+      "type": "text_input",
+      "label": "Subtitle",
+      "placeholder": "CSC 442 — Computational Biology"
+    }
+  }
+}
